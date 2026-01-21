@@ -66,15 +66,17 @@
             <div class="pt-4">
                 <button type="submit" 
                     class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transform active:scale-95 transition-all duration-150">
-                    Iniciar Auditoria
+                    Iniciar Questionario
                 </button>
             </div>
         </form>
 
         <div class="mt-8 text-center text-xs text-gray-400">
-            Sistema de Auditoria Interna &copy; {{ date('Y') }}
+            Detin &copy; {{ date('Y') }}
         </div>
     </div>
-
+    <script>
+        console.log("Feito por Andreysson Araujo - Detin");
+    </script>
 </body>
 </html>

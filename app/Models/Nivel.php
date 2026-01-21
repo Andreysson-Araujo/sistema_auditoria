@@ -22,9 +22,9 @@ class Nivel extends Model
      * Relacionamento: Um Nível tem muitos Servidores.
      * (Você usará isso assim que criar a Model Servidor)
      */
-    /*public function servidores(): HasMany
+    public function servidores(): HasMany
     {
         return $this->hasMany(Servidor::class);
     }
-        */
+    
 }

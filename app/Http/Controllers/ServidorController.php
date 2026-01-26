@@ -78,7 +78,7 @@ class ServidorController extends Controller
                         'pergunta_id' => $perguntaId,
                         'valor'       => $valor,
                         'feedback_id' => null, // Deixamos nulo como você pediu
-                    ]);
+                    ]); 
                 }
             }
         });
@@ -86,6 +86,6 @@ class ServidorController extends Controller
         // Limpa a sessão para um novo servidor poder responder no mesmo PC
         session()->forget('servidor_respondente_id');
 
-        return view('identificacao', compact('nivels', 'centrals', 'orgaos'));
+        return redirect()->route('auditoria.create')->with('sucesso', 'Enviado para auditoria!');
     }
 }

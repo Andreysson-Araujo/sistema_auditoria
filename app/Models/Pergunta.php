@@ -11,7 +11,13 @@ class Pergunta extends Model
 
     protected $fillable = ['pilar_id', 'texto_pergunta', 'tipo'];
 
-public function pilar() {
-    return $this->belongsTo(Pilar::class);
-}
+    public function pilar()
+    {
+        return $this->belongsTo(Pilar::class);
+    }
+
+    public function respostas()
+    {
+        return $this->hasMany(Resposta::class, 'pergunta_id');
+    }
 }

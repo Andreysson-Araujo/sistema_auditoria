@@ -27,4 +27,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/auditoria/painel', [FeedbackController::class, 'index'])->name('auditoria.index');
     // Ver detalhes de uma resposta específica
     Route::get('/auditoria/ver/{id}', [FeedbackController::class, 'show'])->name('auditoria.show');
+
+    Route::get('/auditoria/historico', [FeedbackController::class, 'index'])->name('auditoria.index');
+
+    // 2. Lista de Auditorias Pendentes (Quem respondeu e não foi auditado)
+    Route::get('/auditoria/pendentes', [FeedbackController::class, 'auditoriasPendentes'])->name('auditoria.pendentes');
+
+    // 3. Ver as respostas do servidor e concluir a auditoria
+    // No seu web.php, mude de 'auditoria.show_pendente' para 'auditoria.show_respostas'
+    Route::get('/auditoria/analisar/{id}', [FeedbackController::class, 'showPendente'])->name('auditoria.show_respostas');
+    Route::post('/auditoria/finalizar/{servidor_id}', [FeedbackController::class, 'finalizarAuditoria'])->name('auditoria.finalizar');
 });

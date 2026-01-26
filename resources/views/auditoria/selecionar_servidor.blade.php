@@ -11,6 +11,7 @@
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800">Histórico de Auditorias (Feedbacks)</h1>
             <a href="/admin" class="text-sm bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Voltar ao Painel</a>
+            <a href="{{ route('auditoria.pendentes') }}" class="text-sm bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Ver Respostas</a>
         </div>
 
         <div class="bg-white shadow-md rounded-lg overflow-hidden">

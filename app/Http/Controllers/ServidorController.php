@@ -2,51 +2,90 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Servidor;
+use App\Models\Pergunta;
+use App\Models\Resposta;
+use App\Models\Nivel;
 use App\Models\Central;
 use App\Models\Orgao;
-use App\Models\Nivel;
-use App\Models\Servidor;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ServidorController extends Controller
 {
     /**
-     * Exibe o formulário de identificação do servidor.
+     * TELA 1: Identificacao
      */
-    public function index()
+    public function identificacao()
     {
-        // Carrega os dados para preencher os campos de seleção no formulário
+        $nivels = Nivel::all();
         $centrals = Central::all();
         $orgaos = Orgao::all();
-        $nivels = Nivel::all();
-
-        // Retorna a view 'servidores.blade.php' passando as variáveis
-        return view('servidores', compact('centrals', 'orgaos', 'nivels'));
+        
+        // Retorna a view identificacao.blade.php
+        return view('identificacao', compact('nivels', 'centrals', 'orgaos'));
     }
 
     /**
-     * Salva os dados do servidor no banco de dados.
+     * AÇÃO: Salva o servidor e vai para perguntas
      */
     public function store(Request $request)
     {
-        // Validação básica para garantir que nenhum campo venha vazio
+        // Cria o servidor com os dados do formulário
+        $servidor = Servidor::create($request->all());
+        
+        // Guarda o ID na sessão para as perguntas saberem quem está respondendo
+        session(['servidor_respondente_id' => $servidor->id]);
+
+        // Redireciona para a rota que exibe a view de perguntas
+        return redirect()->route('perguntas');
+    }
+
+    /**
+     * TELA 2: Perguntas
+     */
+    public function perguntas()
+    {
+        // Se tentarem acessar sem se identificar, volta para a identificação
+        if (!session()->has('servidor_respondente_id')) {
+            return redirect()->route('auditoria.create');
+        }
+
+        $perguntas = Pergunta::all();
+        return view('perguntas', compact('perguntas'));
+    }
+
+    /**
+     * AÇÃO: Salva apenas as respostas
+     */
+    public function salvarRespostas(Request $request)
+    {
+        $servidorId = session('servidor_respondente_id');
+
+        if (!$servidorId) {
+            return redirect()->route('auditoria.create');
+        }
+
         $request->validate([
-            'servidor_nome' => 'required|string|max:255',
-            'central_id' => 'required|exists:centrals,id',
-            'orgao_id' => 'required|exists:orgaos,id',
-            'nivel_id' => 'required|exists:nivels,id',
+            'respostas' => 'required|array',
         ]);
 
-        // Cria o registro na tabela de servidores
-        $servidor = Servidor::create([
-            'servidor_nome' => $request->servidor_nome,
-            'central_id'    => $request->central_id,
-            'orgao_id'      => $request->orgao_id,
-            'nivel_id'      => $request->nivel_id,
-        ]);
+        DB::transaction(function () use ($request, $servidorId) {
+            foreach ($request->respostas as $perguntaId => $valor) {
+                if ($valor !== null && $valor !== '') {
+                    Resposta::create([
+                        'servidor_id' => $servidorId,
+                        'pergunta_id' => $perguntaId,
+                        'valor'       => $valor,
+                        'feedback_id' => null, // Deixamos nulo como você pediu
+                    ]);
+                }
+            }
+        });
 
-        // Por enquanto, após salvar, ele apenas volta com uma mensagem de sucesso
-        // No futuro, redirecionaremos para a página de perguntas passando o ID do servidor
-        return redirect()->back()->with('success', 'Servidor cadastrado com sucesso!');
+        // Limpa a sessão para um novo servidor poder responder no mesmo PC
+        session()->forget('servidor_respondente_id');
+
+        return view('identificacao', compact('nivels', 'centrals', 'orgaos'));
     }
 }

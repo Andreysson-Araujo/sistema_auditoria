@@ -16,7 +16,13 @@ class Servidor extends Model
         'central_id',
         'orgao_id',
         'nivel_id',
+        
     ];
+
+    public function respostas()
+    {
+        return $this->hasMany(Resposta::class, 'servidor_id');
+    }
 
     // Relacionamentos
     public function central() { return $this->belongsTo(Central::class); }

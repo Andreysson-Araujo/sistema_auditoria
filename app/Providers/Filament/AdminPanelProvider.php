@@ -11,6 +11,7 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
+use Filament\Navigation\NavigationItem; // Importação necessária para o link
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -53,6 +54,21 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+            ])
+            /* --- LINK PARA O FORMULÁRIO DE AUDITORIA --- */
+            ->navigationItems([
+                NavigationItem::make('Painel de Feedbacks')
+                    ->url(fn() => route('auditoria.index')) // Rota para o FeedbackController@index
+                    ->icon('heroicon-o-presentation-chart-line') // Ícone de gráfico/gestão
+                    ->group('Gestão de Qualidade')
+                    ->sort(1),
+
+                /* NavigationItem::make('Nova Auditoria')
+                    ->url(fn() => route('auditoria.create')) // Rota para o FeedbackController@create
+                    ->icon('heroicon-o-plus-circle')
+                    ->group('Gestão de Qualidade')
+                    ->sort(2),
+                    */
             ]);
     }
 }

@@ -70,7 +70,7 @@ class FeedbackController extends Controller
     }
     public function index()
     {
-        $feedbacks = Feedback::with('servidor')->latest()->get();
+        $feedbacks = Feedback::with('servidor.orgao')->latest()->get();
         return view('auditoria.selecionar_servidor', compact('feedbacks'));
     }
 
@@ -88,22 +88,35 @@ class FeedbackController extends Controller
     }
 
     public function finalizarAuditoria(Request $request, $servidor_id)
-{
-    DB::transaction(function () use ($servidor_id) {
-        // 1. Cria o Feedback oficial
-        $feedback = Feedback::create([
-            'servidor_id' => $servidor_id,
-            'user_id'     => auth()->id(), // ID do Auditor logado
-            'data_auditoria' => now(),
-        ]);
+    {
+        DB::transaction(function () use ($servidor_id) {
+            // 1. Cria o Feedback oficial
+            $feedback = Feedback::create([
+                'servidor_id' => $servidor_id,
+                'user_id'     => auth()->id(), // ID do Auditor logado
+                'data_auditoria' => now(),
+            ]);
 
-        // 2. Atualiza todas as respostas desse servidor que estavam "órfãs"
-        // vinculando-as ao novo feedback_id
-        Resposta::where('servidor_id', $servidor_id)
+            // 2. Atualiza todas as respostas desse servidor que estavam "órfãs"
+            // vinculando-as ao novo feedback_id
+            $respostas = Resposta::where('servidor_id', $servidor_id)
                 ->whereNull('feedback_id')
-                ->update(['feedback_id' => $feedback->id]);
-    });
+                ->get();
+            foreach ($respostas as $resp) {
+                $resp->update(['feedback_id' => $feedback->id]);
+            }
+            // 3. CÁLCULO DA NOTA (Lógica: Sim / Total)
+            $totalPerguntas = $respostas->count();
+            $totalSim = $respostas->where('valor', 'sim')->count();
 
-    return redirect()->route('auditoria.index')->with('sucesso', 'Auditoria finalizada com sucesso!');
-}
+            $notaFinal = $totalPerguntas > 0 ? ($totalSim / $totalPerguntas) * 100 : 0;
+
+            // 4. Atualiza a nota no feedback
+            $feedback->update(['nota_final' => $notaFinal]);
+
+            return $feedback;
+        });
+
+        return redirect()->route('auditoria.index')->with('sucesso', 'Auditoria finalizada com sucesso!');
+    }
 }

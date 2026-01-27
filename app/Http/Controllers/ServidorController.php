@@ -73,9 +73,12 @@ class ServidorController extends Controller
         DB::transaction(function () use ($request, $servidorId) {
             foreach ($request->respostas as $perguntaId => $valor) {
                 if ($valor !== null && $valor !== '') {
+
+                    $pergunta = Pergunta::find($perguntaId);
                     Resposta::create([
                         'servidor_id' => $servidorId,
                         'pergunta_id' => $perguntaId,
+                        'pilar_id'    => $pergunta->pilar_id,
                         'valor'       => $valor,
                         'feedback_id' => null, // Deixamos nulo como você pediu
                     ]); 

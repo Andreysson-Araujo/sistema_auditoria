@@ -24,6 +24,12 @@ class Feedback extends Model
         return $this->belongsTo(Servidor::class);
     }
 
+    public function respostas()
+    {
+        // O segundo parâmetro é a chave estrangeira na tabela 'respostas'
+        return $this->hasMany(Resposta::class, 'feedback_id');
+    }
+
     // Relacionamento com o Auditor (User)
     public function user()
     {

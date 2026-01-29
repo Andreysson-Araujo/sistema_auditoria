@@ -20,4 +20,10 @@ class Resposta extends Model
     {
         return $this->belongsTo(Servidor::class, 'servidor_id');
     }
+
+    public function respostas()
+    {
+        // O segundo parâmetro é a chave estrangeira na tabela 'respostas'
+        return $this->hasMany(Resposta::class, 'feedback_id');
+    }
 }

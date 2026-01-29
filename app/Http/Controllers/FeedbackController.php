@@ -74,6 +74,19 @@ class FeedbackController extends Controller
         return view('auditoria.selecionar_servidor', compact('feedbacks'));
     }
 
+    public function show($id)
+    {
+        $feedback = Feedback::with([
+            'servidor.nivel',
+            'servidor.orgao',
+            'servidor.central',
+            'respostas.pergunta',
+            'user'
+        ])->findOrFail($id);
+
+        return view('auditoria.show', compact('feedback'));
+    }
+
     public function auditoriasPendentes()
     {
         // Busca servidores que têm respostas onde o feedback_id é nulo

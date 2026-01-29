@@ -104,4 +104,12 @@ class PerguntaResource extends Resource
             'edit' => Pages\EditPergunta::route('/{record}/edit'),
         ];
     }
+
+    public static function getEloquentQuery(): Builder
+{
+    return parent::getEloquentQuery()
+        ->withoutGlobalScopes([
+            SoftDeletingScope::class,
+        ]);
+}
 }

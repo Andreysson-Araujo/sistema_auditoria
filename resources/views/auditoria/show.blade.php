@@ -7,62 +7,61 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-8">
-    <div class="max-w-5xl mx-auto">
+    <div class="max-w-4xl mx-auto">
         
-        <div class="bg-white rounded-t-lg shadow-md p-6 border-b">
-            <div class="flex justify-between items-center">
+        <div class="bg-white rounded-t-lg shadow-md p-6 border-b-4 border-amber-500">
+            <div class="flex justify-between items-start">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-800">Relatório de Auditoria</h1>
-                    <p class="text-gray-500 uppercase text-xs font-bold tracking-wider">
-                        {{ $feedback->servidor->orgao->orgao_nome ?? 'Órgão N/A' }}
-                    </p>
+                    <h1 class="text-2xl font-bold text-gray-800">{{ $feedback->servidor->servidor_nome }}</h1>
+                    <p class="text-gray-500 uppercase text-sm font-semibold">{{ $feedback->servidor->orgao->orgao_nome ?? 'Órgão não informado' }}</p>
                 </div>
                 <div class="text-right">
-                    <span class="block text-sm text-gray-400">Nota de Conformidade</span>
-                    <span class="text-4xl font-black {{ $feedback->nota_final >= 80 ? 'text-green-600' : 'text-red-600' }}">
-                        {{ number_format($feedback->nota_final, 1) }}%
-                    </span>
+                    <span class="block text-xs text-gray-400 uppercase font-bold">Nota Final</span>
+                    <span class="text-3xl font-black text-amber-600">{{ number_format($feedback->nota_final, 1) }}%</span>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mt-6 text-sm text-gray-600">
+                <div class="bg-gray-50 p-3 rounded">
+                    <strong>Nível:</strong> {{ $feedback->servidor->nivel->nivel_nome ?? 'N/A' }}
+                </div>
+                <div class="bg-gray-50 p-3 rounded">
+                    <strong>Central:</strong> {{ $feedback->servidor->central->central_nome ?? 'N/A' }}
                 </div>
             </div>
         </div>
 
-        <div class="bg-gray-50 border-b p-4 grid grid-cols-3 gap-4 text-sm shadow-sm">
-            <div><strong>Servidor:</strong> {{ $feedback->servidor->servidor_nome }}</div>
-            <div><strong>Auditor:</strong> {{ $feedback->user->name }}</div>
-            <div><strong>Data:</strong> {{ $feedback->created_at->format('d/m/Y H:i') }}</div>
-        </div>
+        <div class="bg-white shadow-md p-6 rounded-b-lg">
+            <h2 class="text-lg font-bold text-gray-700 mb-6 border-l-4 border-amber-500 pl-2">Relatório de Auditoria Concluído</h2>
 
-        <div class="bg-white shadow-md rounded-b-lg p-6">
-            <h2 class="text-lg font-bold text-gray-700 mb-6">Detalhamento das Questões</h2>
-
-            <div class="space-y-4">
-                @foreach($feedback->respostas as $index => $resposta)
-                    <div class="flex items-start justify-between p-4 rounded-lg border {{ strtolower($resposta->valor) == 'sim' ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100' }}">
-                        <div class="flex-1">
-                            <span class="text-xs font-bold text-gray-400 uppercase tracking-tighter block mb-1">
-                                Pilar: {{ $resposta->pilar->pilar_value ?? 'N/A' }}
-                            </span>
-                            <p class="text-gray-800 font-medium">
-                                <span class="mr-2">{{ $index + 1 }}.</span>
-                                {{ $resposta->pergunta->texto_pergunta ?? 'Questão removida' }}
-                            </p>
-                        </div>
-                        <div class="ml-4">
-                            <span class="px-4 py-1 rounded-full text-xs font-black uppercase {{ strtolower($resposta->valor) == 'sim' ? 'text-green-700' : 'text-red-700' }}">
+            <div class="space-y-6">
+                @forelse($feedback->respostas as $index => $resposta)
+                    <div class="border-b pb-4 last:border-0">
+                        <p class="text-gray-800 font-medium mb-2">
+                            <span class="text-amber-500 mr-2">{{ $index + 1 }}.</span>
+                            {{-- Puxando a pergunta através da resposta vinculada ao feedback --}}
+                            {{ $resposta->perguntas->texto_pergunta ?? 'Pergunta não encontrada' }}
+                        </p>
+                        
+                        <div class="flex items-center gap-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase {{ strtolower($resposta->valor) == 'sim' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
                                 {{ $resposta->valor }}
                             </span>
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <p class="text-center text-gray-500 py-10 italic">Nenhuma resposta encontrada para este feedback.</p>
+                @endforelse
             </div>
 
-            <div class="mt-8 flex justify-between">
-                <a href="{{ route('auditoria.index') }}" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-bold">
-                    Voltar para o Histórico
-                </a>
-                <button onclick="window.print()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-bold shadow-lg">
-                    Imprimir Relatório
-                </button>
+            <div class="mt-10 pt-6 border-t flex justify-between items-center">
+                <p class="text-xs text-gray-400">Auditado por: {{ $feedback->user->name }} em {{ $feedback->created_at->format('d/m/Y H:i') }}</p>
+                <div>
+                    <a href="{{ route('auditoria.index') }}" class="mr-4 text-gray-500 hover:underline text-sm font-medium">Voltar</a>
+                    <button onclick="window.print()" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition shadow-lg">
+                        Imprimir Relatório
+                    </button>
+                </div>
             </div>
         </div>
     </div>

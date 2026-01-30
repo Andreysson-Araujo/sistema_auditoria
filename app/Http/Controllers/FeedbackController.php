@@ -89,13 +89,15 @@ class FeedbackController extends Controller
 
     public function auditoriasPendentes()
     {
-        // Busca servidores que têm respostas onde o feedback_id é nulo
-        // Usamos o withCount para saber quantas perguntas eles responderam
+        // BUSCA: Servidores que possuem respostas onde o feedback_id é nulo
         $servidores = Servidor::whereHas('respostas', function ($query) {
             $query->whereNull('feedback_id');
-        })->withCount(['respostas' => function ($query) {
-            $query->whereNull('feedback_id');
-        }])->get();
+        })
+            ->with(['orgao', 'nivel', 'central']) // Carrega as infos para a tabela ficar bonita
+            ->withCount(['respostas' => function ($query) {
+                $query->whereNull('feedback_id');
+            }])
+            ->get();
 
         return view('auditoria.pendentes', compact('servidores'));
     }
@@ -103,33 +105,39 @@ class FeedbackController extends Controller
     public function finalizarAuditoria(Request $request, $servidor_id)
     {
         DB::transaction(function () use ($servidor_id) {
-            // 1. Cria o Feedback oficial
             $feedback = Feedback::create([
                 'servidor_id' => $servidor_id,
-                'user_id'     => auth()->id(), // ID do Auditor logado
+                'user_id'     => auth()->id(),
                 'data_auditoria' => now(),
             ]);
 
-            // 2. Atualiza todas as respostas desse servidor que estavam "órfãs"
-            // vinculando-as ao novo feedback_id
             $respostas = Resposta::where('servidor_id', $servidor_id)
                 ->whereNull('feedback_id')
                 ->get();
+
             foreach ($respostas as $resp) {
                 $resp->update(['feedback_id' => $feedback->id]);
             }
-            // 3. CÁLCULO DA NOTA (Lógica: Sim / Total)
+
+            // --- NOVO CÁLCULO PARA NOTAS 1 A 5 ---
             $totalPerguntas = $respostas->count();
-            $totalSim = $respostas->where('valor', 'sim')->count();
 
-            $notaFinal = $totalPerguntas > 0 ? ($totalSim / $totalPerguntas) * 100 : 0;
+            // Somamos os valores das respostas (ex: 5 + 4 + 3...)
+            $somaNotas = $respostas->sum(function ($r) {
+                return (int) $r->valor;
+            });
 
-            // 4. Atualiza a nota no feedback
+            // O máximo que ele poderia tirar (Ex: 10 perguntas x nota 5 = 50)
+            $pontuacaoMaxima = $totalPerguntas * 5;
+
+            // Transformamos em porcentagem (Ex: 40 pontos de 50 = 80%)
+            $notaFinal = $pontuacaoMaxima > 0 ? ($somaNotas / $pontuacaoMaxima) * 100 : 0;
+
             $feedback->update(['nota_final' => $notaFinal]);
 
             return $feedback;
         });
 
-        return redirect()->route('auditoria.index')->with('sucesso', 'Auditoria finalizada com sucesso!');
+        return redirect()->route('auditoria.index')->with('sucesso', 'Auditoria calculada com sucesso!');
     }
 }

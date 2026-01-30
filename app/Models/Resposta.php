@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Resposta extends Model
 {
     use HasFactory;
-    protected $fillable = ['servidor_id', 'pergunta_id','pilar_id', 'valor'];
+    protected $fillable = ['servidor_id', 'pergunta_id', 'pilar_id', 'valor', 'feedback_id'];
 
     public function pergunta()
     {
@@ -21,9 +21,8 @@ class Resposta extends Model
         return $this->belongsTo(Servidor::class, 'servidor_id');
     }
 
-    public function respostas()
+    public function pilar()
     {
-        // O segundo parâmetro é a chave estrangeira na tabela 'respostas'
-        return $this->hasMany(Resposta::class, 'feedback_id');
+        return $this->belongsTo(Pilar::class, 'pilar_id');
     }
 }

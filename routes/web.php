@@ -11,6 +11,10 @@ use League\Csv\Query\Row;
 // 1. Tela de Identificação (seu primeiro HTML)
 Route::get('/identificacao', [ServidorController::class, 'identificacao'])->name('auditoria.create');
 
+// No seu routes/web.php
+
+Route::get('/', [ServidorController::class, 'identificacao'])->name('auditoria.create');
+
 // 2. A rota que recebe os dados do servidor (Onde o erro estava ocorrendo)
 Route::post('/servidores/salvar', [ServidorController::class, 'store'])->name('servidores.store');
 

@@ -104,11 +104,12 @@ class FeedbackController extends Controller
 
     public function finalizarAuditoria(Request $request, $servidor_id)
     {
-        DB::transaction(function () use ($servidor_id) {
+        DB::transaction(function () use ($servidor_id, $request) {
             $feedback = Feedback::create([
                 'servidor_id' => $servidor_id,
                 'user_id'     => auth()->id(),
                 'data_auditoria' => now(),
+                'comentario' => $request->comentario,
             ]);
 
             $respostas = Resposta::where('servidor_id', $servidor_id)

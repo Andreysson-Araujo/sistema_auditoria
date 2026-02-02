@@ -16,7 +16,8 @@ class Feedback extends Model
         'servidor_id',
         'user_id',
         'data_auditoria',
-        'nota_final'
+        'nota_final',
+        'comentario'
     ];
 
     // Relacionamento com o Servidor

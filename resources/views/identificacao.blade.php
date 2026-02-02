@@ -69,6 +69,18 @@
                     Iniciar Questionario
                 </button>
             </div>
+            <div class="relative my-8">
+            
+
+        <div class="text-center">
+            <a href="/admin/login" 
+                class="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors duration-200">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>
+                </svg>
+                Login
+            </a>
+        </div>
         </form>
 
         <div class="mt-8 text-center text-xs text-gray-400">

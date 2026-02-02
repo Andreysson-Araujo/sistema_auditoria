@@ -27,7 +27,7 @@ class AuditoriaStats extends BaseWidget
                 ->descriptionIcon('heroicon-m-check-circle')
                 ->color('success'),
 
-            Stat::make('Pendentes', $pendentes)
+            Stat::make('Formularios Pendentes', $pendentes)
                 ->description('Aguardando avaliação')
                 ->descriptionIcon('heroicon-m-clock')
                 ->color($pendentes > 0 ? 'warning' : 'gray'),

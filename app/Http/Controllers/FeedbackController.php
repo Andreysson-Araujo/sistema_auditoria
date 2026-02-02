@@ -70,7 +70,7 @@ class FeedbackController extends Controller
     }
     public function index()
     {
-        $feedbacks = Feedback::with('servidor.orgao')->latest()->get();
+        $feedbacks = Feedback::with('servidor.orgao')->latest()->paginate(10);
         return view('auditoria.selecionar_servidor', compact('feedbacks'));
     }
 
@@ -97,7 +97,8 @@ class FeedbackController extends Controller
             ->withCount(['respostas' => function ($query) {
                 $query->whereNull('feedback_id');
             }])
-            ->get();
+            ->latest()
+            ->paginate(10);
 
         return view('auditoria.pendentes', compact('servidores'));
     }

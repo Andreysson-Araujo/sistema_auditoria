@@ -10,7 +10,7 @@ class AuditoriaLink extends BaseWidget
     protected function getStats(): array
     {
         return [
-            Stat::make('Sistema de Coleta', 'Iniciar Nova Auditoria')
+            Stat::make('Pagina de Auditoria', 'Iniciar Nova Auditoria')
                 ->description('Clique aqui para abrir o formulário externo')
                 ->descriptionIcon('heroicon-m-clipboard-document-check')
                 ->color('success')

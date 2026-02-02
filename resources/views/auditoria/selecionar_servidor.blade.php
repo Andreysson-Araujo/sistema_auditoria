@@ -23,7 +23,7 @@
                         <th class="p-4">Servidor Auditado</th>
                         <th class="p-4">Auditor</th>
                         <th class="p-4">Data</th>
-                        <th class="p-4 text-center">Conformidade</th> {{-- NOVA COLUNA --}}
+                        <th class="p-4 text-center">Conformidade</th>
                         <th class="p-4 text-center">Ações</th>
                     </tr>
                 </thead>
@@ -37,7 +37,6 @@
                             <td class="p-4 text-gray-600 text-sm">{{ $feedback->user->name }}</td>
                             <td class="p-4 text-gray-500 text-sm">{{ $feedback->created_at->format('d/m/Y') }}</td>
                             
-                            {{-- EXIBIÇÃO DA NOTA COM CORES --}}
                             <td class="p-4 text-center">
                                 <span class="px-3 py-1 rounded-full text-xs font-bold 
                                     {{ $feedback->nota_final >= 80 ? 'bg-green-100 text-green-700' : 
@@ -60,6 +59,10 @@
                 </tbody>
             </table>
         </div>
-    </div>
+
+        <div class="mt-6">
+            {{ $feedbacks->links() }}
+        </div>
+        </div>
 </body>
 </html>

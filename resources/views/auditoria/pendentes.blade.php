@@ -10,7 +10,10 @@
     <div class="max-w-6xl mx-auto">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800">Servidores Aguardando Auditoria</h1>
-            <a href="{{ route('auditoria.index') }}" class="text-sm bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Ver Histórico (Feedbacks)</a>
+            <div class="flex gap-2">
+                <a href="/admin" class="text-sm bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Painel Administrativo</a>
+                <a href="{{ route('auditoria.index') }}" class="text-sm bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Ver Histórico</a>
+            </div>
         </div>
 
         <div class="bg-white shadow-md rounded-lg overflow-hidden">
@@ -19,6 +22,7 @@
                     <tr>
                         <th class="p-4">Servidor</th>
                         <th class="p-4">Órgão</th>
+                        <th class="p-4">Nivel</th>
                         <th class="p-4">Total de Respostas</th>
                         <th class="p-4 text-center">Ação</th>
                     </tr>
@@ -28,10 +32,11 @@
                         <tr class="border-b hover:bg-gray-50 transition">
                             <td class="p-4 font-semibold">{{ $servidor->servidor_nome }}</td>
                             <td class="p-4 text-gray-600">{{ $servidor->orgao->orgao_nome ?? 'N/A' }}</td>
+                            <td class="p-4 text-gray-600">{{ $servidor->nivel->nivel_nome ?? 'N/A' }}</td>
                             <td class="p-4 text-gray-500">{{ $servidor->respostas_count }} questões respondidas</td>
                             <td class="p-4 text-center">
                                 <a href="{{ route('auditoria.show_respostas', $servidor->id) }}" 
-                                   class="bg-green-500 text-white px-4 py-2 rounded text-sm hover:bg-green-600">
+                                   class="bg-green-500 text-white px-4 py-2 rounded text-sm hover:bg-green-600 font-bold shadow-sm">
                                     Realizar Auditoria
                                 </a>
                             </td>
@@ -44,6 +49,11 @@
                 </tbody>
             </table>
         </div>
+
+        <div class="mt-6">
+            {{ $servidores->links() }}
+        </div>
+
     </div>
 </body>
 </html>

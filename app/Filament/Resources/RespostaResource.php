@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class RespostaResource extends Resource
 {
+    protected static bool $shouldRegisterNavigation = false;
     protected static ?string $model = Resposta::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';

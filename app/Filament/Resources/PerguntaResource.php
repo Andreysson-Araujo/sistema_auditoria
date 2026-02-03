@@ -17,7 +17,7 @@ class PerguntaResource extends Resource
 {
     protected static ?string $model = Pergunta::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
     public static function form(Form $form): Form
     {

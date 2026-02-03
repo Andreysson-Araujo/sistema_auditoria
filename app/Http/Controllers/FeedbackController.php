@@ -106,40 +106,49 @@ class FeedbackController extends Controller
     public function finalizarAuditoria(Request $request, $servidor_id)
     {
         DB::transaction(function () use ($servidor_id, $request) {
-            $feedback = Feedback::create([
-                'servidor_id' => $servidor_id,
-                'user_id'     => auth()->id(),
-                'data_auditoria' => now(),
-                'comentario' => $request->comentario,
-            ]);
-
+            // 1. Pegamos as respostas que ainda não foram auditadas
             $respostas = Resposta::where('servidor_id', $servidor_id)
                 ->whereNull('feedback_id')
                 ->get();
 
+            // 2. Filtramos apenas as respostas que possuem valor numérico (1 a 5)
+            // Isso ignora a pergunta de comentário no cálculo da média base
+            $respostasComNota = $respostas->filter(function ($r) {
+                return is_numeric($r->valor) && (int) $r->valor > 0;
+            });
+
+            $totalPerguntas = $respostasComNota->count();
+            $somaNotas = $respostasComNota->sum(fn($r) => (int) $r->valor);
+            $pontuacaoMaxima = $totalPerguntas * 5;
+
+            // 3. Cálculo da Nota Base (0 a 100)
+            $notaBase = $pontuacaoMaxima > 0 ? ($somaNotas / $pontuacaoMaxima) * 100 : 0;
+
+            // 4. Aplicação do AJUSTE (Vindo dos seus novos botões)
+            $valorAjuste = (int) $request->input('ajuste_auditor', 0); // Padrão 0 se não enviado
+            $notaFinal = $notaBase + $valorAjuste;
+
+            // Limita a nota entre 0 e 100
+            $notaFinal = max(0, min(100, $notaFinal));
+
+            // 5. Criação do Feedback com o ajuste
+            $feedback = Feedback::create([
+                'servidor_id'    => $servidor_id,
+                'user_id'        => auth()->id(),
+                'data_auditoria' => now(),
+                'nota_final'     => $notaFinal,
+                'ajuste_auditor' => $valorAjuste,
+                'comentario'     => $request->comentario,
+            ]);
+
+            // 6. Vincula as respostas ao feedback criado
             foreach ($respostas as $resp) {
                 $resp->update(['feedback_id' => $feedback->id]);
             }
 
-            // --- NOVO CÁLCULO PARA NOTAS 1 A 5 ---
-            $totalPerguntas = $respostas->count();
-
-            // Somamos os valores das respostas (ex: 5 + 4 + 3...)
-            $somaNotas = $respostas->sum(function ($r) {
-                return (int) $r->valor;
-            });
-
-            // O máximo que ele poderia tirar (Ex: 10 perguntas x nota 5 = 50)
-            $pontuacaoMaxima = $totalPerguntas * 5;
-
-            // Transformamos em porcentagem (Ex: 40 pontos de 50 = 80%)
-            $notaFinal = $pontuacaoMaxima > 0 ? ($somaNotas / $pontuacaoMaxima) * 100 : 0;
-
-            $feedback->update(['nota_final' => $notaFinal]);
-
             return $feedback;
         });
 
-        return redirect()->route('auditoria.index')->with('sucesso', 'Auditoria calculada com sucesso!');
+        return redirect()->route('auditoria.index')->with('sucesso', 'Auditoria finalizada com sucesso!');
     }
 }

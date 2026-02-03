@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('servidor_id')->constrained('servidors'); // Quem está sendo auditado
             $table->foreignId('user_id')->constrained('users'); // O Auditor que está logado
             $table->date('data_auditoria');
-            $table->timestamps();
+            $table->timestamps();    
         });
     }
 

@@ -68,11 +68,30 @@ class FeedbackController extends Controller
 
         return view('auditoria.show_respostas', compact('servidor'));
     }
-    public function index()
-    {
-        $feedbacks = Feedback::with('servidor.orgao')->latest()->paginate(10);
-        return view('auditoria.selecionar_servidor', compact('feedbacks'));
+    public function index(Request $request)
+{
+    $query = Feedback::with(['servidor.orgao', 'user']);
+
+    if ($request->filled('orgao_id')) {
+        $query->whereHas('servidor', fn($q) => $q->where('orgao_id', $request->orgao_id));
     }
+
+    if ($request->filled('data')) {
+        $query->whereDate('created_at', $request->data);
+    }
+
+    if ($request->filled('nota_minima')) {
+        $query->where('nota_final', '>=', $request->nota_minima);
+    }
+
+    // Usamos o appends para anexar os filtros sem usar o 'withQueryString' que buga seu editor
+    $feedbacks = $query->latest()->paginate(10);
+    $feedbacks->appends($request->all()); 
+
+    $orgaos = \App\Models\Orgao::orderBy('orgao_nome')->get();
+
+    return view('auditoria.index', compact('feedbacks', 'orgaos'));
+}
 
     public function show($id)
     {

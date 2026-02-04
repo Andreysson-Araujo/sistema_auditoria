@@ -69,29 +69,29 @@ class FeedbackController extends Controller
         return view('auditoria.show_respostas', compact('servidor'));
     }
     public function index(Request $request)
-{
-    $query = Feedback::with(['servidor.orgao', 'user']);
+    {
+        $query = Feedback::with(['servidor.orgao', 'user']);
 
-    if ($request->filled('orgao_id')) {
-        $query->whereHas('servidor', fn($q) => $q->where('orgao_id', $request->orgao_id));
+        if ($request->filled('orgao_id')) {
+            $query->whereHas('servidor', fn($q) => $q->where('orgao_id', $request->orgao_id));
+        }
+
+        if ($request->filled('data')) {
+            $query->whereDate('created_at', $request->data);
+        }
+
+        if ($request->filled('nota_minima')) {
+            $query->where('nota_final', '>=', $request->nota_minima);
+        }
+
+        // Usamos o appends para anexar os filtros sem usar o 'withQueryString' que buga seu editor
+        $feedbacks = $query->latest()->paginate(10);
+        $feedbacks->appends($request->all());
+
+        $orgaos = \App\Models\Orgao::orderBy('orgao_nome')->get();
+
+        return view('auditoria.index', compact('feedbacks', 'orgaos'));
     }
-
-    if ($request->filled('data')) {
-        $query->whereDate('created_at', $request->data);
-    }
-
-    if ($request->filled('nota_minima')) {
-        $query->where('nota_final', '>=', $request->nota_minima);
-    }
-
-    // Usamos o appends para anexar os filtros sem usar o 'withQueryString' que buga seu editor
-    $feedbacks = $query->latest()->paginate(10);
-    $feedbacks->appends($request->all()); 
-
-    $orgaos = \App\Models\Orgao::orderBy('orgao_nome')->get();
-
-    return view('auditoria.index', compact('feedbacks', 'orgaos'));
-}
 
     public function show($id)
     {
@@ -172,42 +172,35 @@ class FeedbackController extends Controller
     }
 
     public function relatorios(Request $request)
-{
-    $query = Feedback::query()->with('servidor.orgao', 'servidor.central');
+    {
+        $centrals = \App\Models\Central::all();
 
-    // Filtros de Período
-    if ($request->filled('data_inicio')) {
-        $query->whereDate('created_at', '>=', $request->data_inicio);
+        // Se não houver data no request, não mostramos dados ainda (estado inicial)
+        if (!$request->filled('data_inicio')) {
+            return view('auditoria.relatorios', compact('centrals'));
+        }
+
+        // Iniciamos a Query
+        $query = Feedback::query()->with(['servidor.orgao', 'servidor.central']);
+
+        // Filtros de Período
+        $query->whereBetween('created_at', [$request->data_inicio, $request->data_fim]);
+
+        // Filtro de Central
+        if ($request->filled('central_id')) {
+            $query->whereHas('servidor', fn($q) => $q->where('central_id', $request->central_id));
+        }
+
+        $feedbacks = $query->get();
+
+        // Se o usuário clicou em "Gerar Planilha", desviamos para a função de exportar
+        if ($request->action == 'exportar') {
+            return $this->exportarRelatorioManual($feedbacks);
+        }
+
+        // Cálculos para a visualização
+        $dadosAgrupados = $feedbacks->groupBy('servidor.orgao.orgao_nome');
+
+        return view('auditoria.relatorios', compact('centrals', 'feedbacks', 'dadosAgrupados'));
     }
-    if ($request->filled('data_fim')) {
-        $query->whereDate('created_at', '<=', $request->data_fim);
-    }
-
-    // Filtros de Hierarquia
-    if ($request->filled('central_id')) {
-        $query->whereHas('servidor', fn($q) => $q->where('central_id', $request->central_id));
-    }
-    if ($request->filled('orgao_id')) {
-        $query->whereHas('servidor', fn($q) => $q->where('orgao_id', $request->orgao_id));
-    }
-
-    $feedbacks = $query->get();
-
-    // --- ESTATÍSTICAS ---
-    $totalAuditorias = $feedbacks->count();
-    $mediaGeral = $feedbacks->avg('nota_final');
-    
-    // Agrupamento por Órgão (Quantidade e Média)
-    $porOrgao = $feedbacks->groupBy('servidor.orgao.orgao_nome')->map(function ($row) {
-        return [
-            'quantidade' => $row->count(),
-            'media' => $row->avg('nota_final')
-        ];
-    });
-
-    $centrals = \App\Models\Central::all();
-    $orgaos = \App\Models\Orgao::all();
-
-    return view('auditoria.relatorios', compact('totalAuditorias', 'mediaGeral', 'porOrgao', 'centrals', 'orgaos'));
-}
 }

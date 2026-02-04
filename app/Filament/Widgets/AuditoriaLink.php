@@ -19,7 +19,7 @@ class AuditoriaLink extends BaseWidget
                     'onclick' => "window.location.href='" . route('auditoria.pendentes') . "'",
                 ]),
             // Card para Histórico/Painel
-            Stat::make('Painel de Feedbacks', 'Consultar Histórico')
+            Stat::make('Painel de Feedbacks', 'Feedbacks Realizados')
                 ->description('Pesquisar auditorias realizadas')
                 ->descriptionIcon('heroicon-m-magnifying-glass')
                 ->color('info')

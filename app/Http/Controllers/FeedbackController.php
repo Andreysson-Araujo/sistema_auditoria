@@ -203,4 +203,43 @@ class FeedbackController extends Controller
 
         return view('auditoria.relatorios', compact('centrals', 'feedbacks', 'dadosAgrupados'));
     }
+
+    private function exportarRelatorioManual($feedbacks)
+    {
+        $fileName = 'relatorio_geral_auditoria_' . date('d_m_Y_H_i') . '.csv';
+
+        $headers = [
+            "Content-type"        => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$fileName",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $callback = function () use ($feedbacks) {
+            $file = fopen('php://output', 'w');
+
+            // Adiciona o BOM para o Excel reconhecer acentos (ç, á, õ) corretamente
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            // Cabeçalho do CSV
+            fputcsv($file, ['Orgao', 'Central', 'Servidor', 'Data', 'Nota Final (%)', 'Auditor'], ';');
+
+            // Linhas de dados
+            foreach ($feedbacks as $fb) {
+                fputcsv($file, [
+                    $fb->servidor->orgao->orgao_nome ?? 'N/A',
+                    $fb->servidor->central->central_nome ?? 'N/A',
+                    $fb->servidor->servidor_nome,
+                    $fb->created_at->format('d/m/Y'),
+                    number_format($fb->nota_final, 2, ',', '.'),
+                    $fb->user->name ?? 'Sistema'
+                ], ';');
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

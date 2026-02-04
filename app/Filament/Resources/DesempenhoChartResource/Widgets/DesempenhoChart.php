@@ -10,7 +10,8 @@ class DesempenhoChart extends ChartWidget
     protected static ?string $heading = 'Distribuição de Auditorias por Órgão';
     
     // Define a largura do gráfico (opcional)
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 3;
+    protected int | string | array $columnSpan = '1';
 
     protected function getData(): array
     {

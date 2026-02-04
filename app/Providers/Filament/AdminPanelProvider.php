@@ -42,6 +42,7 @@ class AdminPanelProvider extends PanelProvider
                 // Listando seus widgets personalizados para garantir que apareçam
                 \App\Filament\Widgets\AuditoriaStats::class,
                 \App\Filament\Widgets\DesempenhoChart::class,
+                \App\Filament\Widgets\CentralAuditoriaChart::class,
             ])
             ->middleware([
                 EncryptCookies::class,

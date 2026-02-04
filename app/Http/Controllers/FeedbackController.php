@@ -170,4 +170,44 @@ class FeedbackController extends Controller
 
         return redirect()->route('auditoria.index')->with('sucesso', 'Auditoria finalizada com sucesso!');
     }
+
+    public function relatorios(Request $request)
+{
+    $query = Feedback::query()->with('servidor.orgao', 'servidor.central');
+
+    // Filtros de Período
+    if ($request->filled('data_inicio')) {
+        $query->whereDate('created_at', '>=', $request->data_inicio);
+    }
+    if ($request->filled('data_fim')) {
+        $query->whereDate('created_at', '<=', $request->data_fim);
+    }
+
+    // Filtros de Hierarquia
+    if ($request->filled('central_id')) {
+        $query->whereHas('servidor', fn($q) => $q->where('central_id', $request->central_id));
+    }
+    if ($request->filled('orgao_id')) {
+        $query->whereHas('servidor', fn($q) => $q->where('orgao_id', $request->orgao_id));
+    }
+
+    $feedbacks = $query->get();
+
+    // --- ESTATÍSTICAS ---
+    $totalAuditorias = $feedbacks->count();
+    $mediaGeral = $feedbacks->avg('nota_final');
+    
+    // Agrupamento por Órgão (Quantidade e Média)
+    $porOrgao = $feedbacks->groupBy('servidor.orgao.orgao_nome')->map(function ($row) {
+        return [
+            'quantidade' => $row->count(),
+            'media' => $row->avg('nota_final')
+        ];
+    });
+
+    $centrals = \App\Models\Central::all();
+    $orgaos = \App\Models\Orgao::all();
+
+    return view('auditoria.relatorios', compact('totalAuditorias', 'mediaGeral', 'porOrgao', 'centrals', 'orgaos'));
+}
 }

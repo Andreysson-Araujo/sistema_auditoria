@@ -69,6 +69,11 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-clock')
                     ->group('Gestão de Qualidade')
                     ->sort(2),
+                NavigationItem::make('Relatórios Gerenciais')
+                    ->url(fn() => route('auditoria.relatorios'))
+                    ->icon('heroicon-o-chart-bar-square')
+                    ->group('Gestão de Qualidade')
+                    ->sort(3),
             ]);
     }
 }

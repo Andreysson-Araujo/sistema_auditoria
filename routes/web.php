@@ -33,6 +33,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/auditoria/ver/{id}', [FeedbackController::class, 'show'])->name('auditoria.show');
 
     Route::get('/auditoria/historico', [FeedbackController::class, 'index'])->name('auditoria.index');
+    Route::get('/auditoria/relatorios', [App\Http\Controllers\FeedbackController::class, 'relatorios'])->name('auditoria.relatorios');
 
     // 2. Lista de Auditorias Pendentes (Quem respondeu e não foi auditado)
     Route::get('/auditoria/pendentes', [FeedbackController::class, 'auditoriasPendentes'])->name('auditoria.pendentes');

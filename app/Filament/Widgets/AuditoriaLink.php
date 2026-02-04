@@ -10,15 +10,35 @@ class AuditoriaLink extends BaseWidget
     protected function getStats(): array
     {
         return [
-            Stat::make('Pagina de Auditoria', 'Iniciar Nova Auditoria')
-                ->description('Clique aqui para abrir o formulário externo')
-                ->descriptionIcon('heroicon-m-clipboard-document-check')
+            Stat::make('Nova Auditoria', 'Realizar uma Auditoria')
+                ->description('Abrir painel de formularios pendentes')
+                ->descriptionIcon('heroicon-m-plus-circle')
                 ->color('success')
                 ->extraAttributes([
-                    'class' => 'cursor-pointer hover:bg-gray-50 transition',
-                    // Aqui está o segredo: o link para sua página
-                    'onclick' => "window.open('" . route('auditoria.index') . "', '_blank')",
+                    'class' => 'cursor-pointer hover:scale-105 transition-transform',
+                    'onclick' => "window.location.href='" . route('auditoria.pendentes') . "'",
                 ]),
+            // Card para Histórico/Painel
+            Stat::make('Painel de Feedbacks', 'Consultar Histórico')
+                ->description('Pesquisar auditorias realizadas')
+                ->descriptionIcon('heroicon-m-magnifying-glass')
+                ->color('info')
+                ->extraAttributes([
+                    'class' => 'cursor-pointer hover:scale-105 transition-transform',
+                    'onclick' => "window.location.href='" . route('auditoria.index') . "'",
+                ]),
+
+            // Card para Relatórios (O que você pediu)
+            Stat::make('Relatórios Gerenciais', 'Gerenciar Relatórios')
+                ->description('Gerar e vizualizar estatísticas e médias')
+                ->descriptionIcon('heroicon-m-chart-bar')
+                ->color('amber')
+                ->extraAttributes([
+                    'class' => 'cursor-pointer hover:scale-105 transition-transform',
+                    'onclick' => "window.location.href='" . route('auditoria.relatorios') . "'",
+                ]),
+
+            // Card para Nova Auditoria
         ];
     }
 }

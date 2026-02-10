@@ -176,57 +176,36 @@ public function relatorios(Request $request)
     $centrals = \App\Models\Central::all();
     $orgaos = \App\Models\Orgao::all();
 
-    // 1. Definimos as datas padrão para exibição inicial no Blade
-    $dataInicio = $request->input('data_inicio', date('01/m/Y')); 
-    $dataFim = $request->input('data_fim', date('d/m/Y'));
+    // 1. Datas padrão no formato Y-m-d para o input type="date"
+    $dataInicio = $request->input('data_inicio', now()->startOfMonth()->format('Y-m-d')); 
+    $dataFim = $request->input('data_fim', now()->format('Y-m-d'));
 
     $query = \App\Models\Feedback::with(['servidor.orgao', 'servidor.central']);
 
-    // 2. Filtro de Período com Tratamento de Erros (Formato BR para DB)
+    // 2. Filtro de Período (Como o input já vem Y-m-d, a busca é direta)
     if ($request->filled('data_inicio')) {
-        try {
-            // trim() remove espaços fantasmas da máscara JS
-            $inicio = \Carbon\Carbon::createFromFormat('d/m/Y', trim($request->data_inicio))->startOfDay();
-            $query->where('created_at', '>=', $inicio);
-        } catch (\Exception $e) {
-            // Se a data for inválida, ignoramos o filtro para não quebrar a página
-        }
+        $query->whereDate('created_at', '>=', $request->data_inicio);
     }
 
     if ($request->filled('data_fim')) {
-        try {
-            $fim = \Carbon\Carbon::createFromFormat('d/m/Y', trim($request->data_fim))->endOfDay();
-            $query->where('created_at', '<=', $fim);
-        } catch (\Exception $e) {
-            // Fallback silencioso
-        }
+        $query->whereDate('created_at', '<=', $request->data_fim);
     }
 
-    // 3. Filtro de Central
+    // 3. Outros Filtros
     if ($request->filled('central_id')) {
         $query->whereHas('servidor', fn($q) => $q->where('central_id', $request->central_id));
     }
 
-    // 4. Filtro de Órgão (Nova funcionalidade solicitada)
     if ($request->filled('orgao_id')) {
         $query->whereHas('servidor', fn($q) => $q->where('orgao_id', $request->orgao_id));
     }
 
-    // 5. Filtro de Faixa de Nota (Conformidade)
-    if ($request->filled('faixa_nota')) {
-        if ($request->faixa_nota == 'alta') $query->where('nota_final', '>=', 80);
-        if ($request->faixa_nota == 'media') $query->whereBetween('nota_final', [50, 79.9]);
-        if ($request->faixa_nota == 'baixa') $query->where('nota_final', '<', 50);
-    }
-
     $feedbacks = $query->latest()->get();
 
-    // Ação de Exportar
     if ($request->action == 'exportar') {
         return $this->exportarRelatorioManual($feedbacks);
     }
 
-    // Agrupamento para a tabela do Blade
     $dadosAgrupados = $feedbacks->groupBy(function($item) {
         return $item->servidor->orgao->orgao_nome ?? 'Não Informado';
     });

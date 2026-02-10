@@ -171,38 +171,75 @@ class FeedbackController extends Controller
         return redirect()->route('auditoria.index')->with('sucesso', 'Auditoria finalizada com sucesso!');
     }
 
-    public function relatorios(Request $request)
-    {
-        $centrals = \App\Models\Central::all();
+public function relatorios(Request $request)
+{
+    $centrals = \App\Models\Central::all();
+    $orgaos = \App\Models\Orgao::all();
 
-        // Se não houver data no request, não mostramos dados ainda (estado inicial)
-        if (!$request->filled('data_inicio')) {
-            return view('auditoria.relatorios', compact('centrals'));
+    // 1. Definimos as datas padrão para exibição inicial no Blade
+    $dataInicio = $request->input('data_inicio', date('01/m/Y')); 
+    $dataFim = $request->input('data_fim', date('d/m/Y'));
+
+    $query = \App\Models\Feedback::with(['servidor.orgao', 'servidor.central']);
+
+    // 2. Filtro de Período com Tratamento de Erros (Formato BR para DB)
+    if ($request->filled('data_inicio')) {
+        try {
+            // trim() remove espaços fantasmas da máscara JS
+            $inicio = \Carbon\Carbon::createFromFormat('d/m/Y', trim($request->data_inicio))->startOfDay();
+            $query->where('created_at', '>=', $inicio);
+        } catch (\Exception $e) {
+            // Se a data for inválida, ignoramos o filtro para não quebrar a página
         }
-
-        // Iniciamos a Query
-        $query = Feedback::query()->with(['servidor.orgao', 'servidor.central']);
-
-        // Filtros de Período
-        $query->whereBetween('created_at', [$request->data_inicio, $request->data_fim]);
-
-        // Filtro de Central
-        if ($request->filled('central_id')) {
-            $query->whereHas('servidor', fn($q) => $q->where('central_id', $request->central_id));
-        }
-
-        $feedbacks = $query->get();
-
-        // Se o usuário clicou em "Gerar Planilha", desviamos para a função de exportar
-        if ($request->action == 'exportar') {
-            return $this->exportarRelatorioManual($feedbacks);
-        }
-
-        // Cálculos para a visualização
-        $dadosAgrupados = $feedbacks->groupBy('servidor.orgao.orgao_nome');
-
-        return view('auditoria.relatorios', compact('centrals', 'feedbacks', 'dadosAgrupados'));
     }
+
+    if ($request->filled('data_fim')) {
+        try {
+            $fim = \Carbon\Carbon::createFromFormat('d/m/Y', trim($request->data_fim))->endOfDay();
+            $query->where('created_at', '<=', $fim);
+        } catch (\Exception $e) {
+            // Fallback silencioso
+        }
+    }
+
+    // 3. Filtro de Central
+    if ($request->filled('central_id')) {
+        $query->whereHas('servidor', fn($q) => $q->where('central_id', $request->central_id));
+    }
+
+    // 4. Filtro de Órgão (Nova funcionalidade solicitada)
+    if ($request->filled('orgao_id')) {
+        $query->whereHas('servidor', fn($q) => $q->where('orgao_id', $request->orgao_id));
+    }
+
+    // 5. Filtro de Faixa de Nota (Conformidade)
+    if ($request->filled('faixa_nota')) {
+        if ($request->faixa_nota == 'alta') $query->where('nota_final', '>=', 80);
+        if ($request->faixa_nota == 'media') $query->whereBetween('nota_final', [50, 79.9]);
+        if ($request->faixa_nota == 'baixa') $query->where('nota_final', '<', 50);
+    }
+
+    $feedbacks = $query->latest()->get();
+
+    // Ação de Exportar
+    if ($request->action == 'exportar') {
+        return $this->exportarRelatorioManual($feedbacks);
+    }
+
+    // Agrupamento para a tabela do Blade
+    $dadosAgrupados = $feedbacks->groupBy(function($item) {
+        return $item->servidor->orgao->orgao_nome ?? 'Não Informado';
+    });
+
+    return view('auditoria.relatorios', compact(
+        'centrals', 
+        'orgaos', 
+        'feedbacks', 
+        'dadosAgrupados', 
+        'dataInicio', 
+        'dataFim'
+    ));
+}
 
     private function exportarRelatorioManual($feedbacks)
     {

@@ -75,6 +75,11 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-chart-bar-square')
                     ->group('Gestão de Qualidade')
                     ->sort(3),
+                NavigationItem::make('Manual do Sistema')
+                ->url(asset('downloads/manual_auditoria.pdf'))
+                ->icon('heroicon-o-document-arrow-down')
+                ->group('Gestão da Qualidade') // Agrupa na barra que você mencionou
+                ->sort(5)
             ]);
     }
 }

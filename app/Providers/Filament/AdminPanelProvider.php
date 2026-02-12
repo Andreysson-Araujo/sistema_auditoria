@@ -78,7 +78,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Manual do Sistema')
                 ->url(asset('downloads/manual_auditoria.pdf'))
                 ->icon('heroicon-o-document-arrow-down')
-                ->group('Gestão da Qualidade') // Agrupa na barra que você mencionou
+                ->group('Sobre o sistema') 
                 ->sort(5)
             ]);
     }

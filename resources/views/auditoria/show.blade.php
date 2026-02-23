@@ -13,7 +13,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 p-8">
+<body class="bg-gray-100 p-4 md:p-8">
     <div class="max-w-4xl mx-auto">
         
         <div class="bg-white rounded-t-lg shadow-md p-6 border-b-4 border-amber-500">
@@ -23,8 +23,8 @@
                     <p class="text-gray-500 uppercase text-sm font-semibold">{{ $feedback->servidor->orgao->orgao_nome ?? 'Órgão não informado' }}</p>
                 </div>
                 <div class="text-right">
-                    <span class="block text-xs text-gray-400 uppercase font-bold">Nota de Conformidade</span>
-                    <span class="text-3xl font-black text-amber-600">{{ number_format($feedback->nota_final, 1) }}%</span>
+                    <span class="block text-[10px] text-gray-400 uppercase font-black tracking-widest">Conformidade Final</span>
+                    <span class="text-4xl font-black text-amber-600">{{ number_format($feedback->nota_final, 1, ',', '.') }}%</span>
                 </div>
             </div>
             
@@ -59,15 +59,38 @@
             <div class="space-y-6">
                 @forelse($feedback->respostas as $index => $resposta)
                     <div class="border-b pb-4 last:border-0">
-                        <p class="text-gray-800 font-medium mb-2">
+                        <p class="text-gray-800 font-medium mb-3">
                             <span class="text-amber-500 mr-2">{{ $index + 1 }}.</span>
-                            {{-- Corrigido para 'pergunta' no singular conforme seu Model --}}
                             {{ $resposta->pergunta->texto_pergunta ?? 'Pergunta não encontrada' }}
                         </p>
                         
                         <div class="flex items-center gap-4">
-                            <span class="px-3 py-1 rounded-full text-xs font-bold uppercase {{ strtolower($resposta->valor) == 'sim' || (is_numeric($resposta->valor) && $resposta->valor >= 3) ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
-                                Resposta: {{ $resposta->valor }}
+                            @php
+                                $valor = $resposta->valor;
+                                $estilo = "bg-gray-100 text-gray-700";
+                                
+                                // Lógica de Cores e Textos para Escala 1 a 4
+                                if (is_numeric($valor)) {
+                                    $labels = [
+                                        1 => 'Insatisfeito',
+                                        2 => 'Pouco Satisfeito',
+                                        3 => 'Satisfeito',
+                                        4 => 'Muito Satisfeito'
+                                    ];
+                                    $textoExibicao = $labels[$valor] ?? $valor;
+                                    
+                                    if ($valor >= 3) $estilo = "bg-green-100 text-green-700";
+                                    elseif ($valor == 2) $estilo = "bg-orange-100 text-orange-700";
+                                    else $estilo = "bg-red-100 text-red-700";
+                                } else {
+                                    $textoExibicao = $valor;
+                                    if (strtolower($valor) == 'sim') $estilo = "bg-green-100 text-green-700";
+                                    if (strtolower($valor) == 'não') $estilo = "bg-red-100 text-red-700";
+                                }
+                            @endphp
+
+                            <span class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wide {{ $estilo }}">
+                                {{ $textoExibicao }}
                             </span>
                         </div>
                     </div>
@@ -76,21 +99,21 @@
                 @endforelse
             </div>
 
-            <div class="mt-10 pt-6 border-t flex justify-between items-center">
-                <div class="text-xs text-gray-400">
+            <div class="mt-10 pt-6 border-t flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="text-[10px] text-gray-400 uppercase font-bold tracking-tight">
                     <p><strong>Auditor Responsável:</strong> {{ $feedback->user->name ?? 'Sistema' }}</p>
                     <p><strong>Realizado em:</strong> {{ $feedback->created_at->format('d/m/Y H:i') }}</p>
                 </div>
                 
-                <div class="no-print flex items-center">
-                    <a href="{{ route('auditoria.index') }}" class="mr-4 text-gray-500 hover:underline text-sm font-medium">
-                        Voltar ao Histórico
+                <div class="no-print flex items-center gap-3">
+                    <a href="{{ route('auditoria.relatorios') }}" class="text-gray-500 hover:text-amber-600 text-xs font-black uppercase tracking-tighter transition">
+                        Voltar ao Relatório
                     </a>
-                    <button onclick="window.print()" class="px-6 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition shadow-lg flex items-center">
+                    <button onclick="window.print()" class="px-6 py-2.5 bg-amber-500 text-white rounded-md font-black text-xs uppercase tracking-widest hover:bg-amber-600 transition shadow-md flex items-center">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                         </svg>
-                        Imprimir
+                        Imprimir Resultado
                     </button>
                 </div>
             </div>

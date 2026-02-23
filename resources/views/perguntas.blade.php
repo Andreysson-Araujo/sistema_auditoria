@@ -6,7 +6,14 @@
     <title>Responder Auditoria</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        input[type="radio"]:checked + span { background-color: #2563eb; color: white; border-color: #2563eb; }
+        /* Estilo para quando o rádio for selecionado */
+        input[type="radio"]:checked + span { 
+            background-color: #2563eb; 
+            color: white; 
+            border-color: #2563eb; 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
         .radio-sim:checked + span { background-color: #10b981 !important; border-color: #10b981 !important; }
         .radio-nao:checked + span { background-color: #ef4444 !important; border-color: #ef4444 !important; }
     </style>
@@ -16,7 +23,7 @@
     <div class="max-w-4xl mx-auto">
         <div class="mb-8 text-center">
             <h1 class="text-3xl font-bold text-gray-800">Formulário de Auditoria</h1>
-            <p class="text-gray-600 mt-2">Responda as questões abaixo de acordo com sua rotina.</p>
+            <p class="text-gray-600 mt-2">Sua percepção é fundamental para a melhoria dos nossos processos.</p>
         </div>
 
         <form action="{{ route('auditoria.salvar') }}" method="POST" class="space-y-6">
@@ -33,11 +40,22 @@
                             <h2 class="text-lg font-medium text-gray-800 mb-4">{{ $pergunta->texto_pergunta }}</h2>
 
                             @if($pergunta->tipo === 'nota')
-                                <div class="grid grid-cols-5 gap-2 md:gap-4">
-                                    @foreach(range(1, 5) as $nota)
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                    @php
+                                        $labels = [
+                                            1 => 'Insatisfeito',
+                                            2 => 'Pouco Satisfeito',
+                                            3 => 'Satisfeito',
+                                            4 => 'Muito Satisfeito'
+                                        ];
+                                    @endphp
+                                    
+                                    @foreach($labels as $valor => $texto)
                                         <label class="cursor-pointer">
-                                            <input type="radio" name="respostas[{{ $pergunta->id }}]" value="{{ $nota }}" required class="hidden">
-                                            <span class="block text-center py-3 border-2 border-gray-200 rounded-lg font-bold text-gray-500 hover:border-blue-300 transition-all">{{ $nota }}</span>
+                                            <input type="radio" name="respostas[{{ $pergunta->id }}]" value="{{ $valor }}" required class="hidden">
+                                            <span class="flex items-center justify-center h-full text-center py-4 px-2 border-2 border-gray-100 rounded-xl font-bold text-gray-500 text-xs md:text-sm hover:border-blue-200 hover:bg-blue-50 transition-all uppercase leading-tight">
+                                                {{ $texto }}
+                                            </span>
                                         </label>
                                     @endforeach
                                 </div>

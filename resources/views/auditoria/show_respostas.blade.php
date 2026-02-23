@@ -9,7 +9,7 @@
     <style>
         @media print {
             .no-print { display: none; }
-            body { background: white; p: 0; }
+            body { background: white; padding: 0; }
             .shadow-md { shadow: none; border: 1px solid #ddd; }
         }
     </style>
@@ -26,7 +26,8 @@
                         {{ $servidor->orgao->orgao_nome ?? 'Órgão não informado' }}
                     </p>
                 </div>
-                <a href="{{ route('auditoria.pendentes') }}" class="no-print text-blue-600 hover:underline text-sm font-medium">
+                <a href="{{ route('auditoria.pendentes') }}"
+                    class="no-print text-blue-600 hover:underline text-sm font-medium">
                     ← Voltar para Pendentes
                 </a>
             </div>
@@ -46,22 +47,34 @@
 
             <div class="space-y-6">
                 @forelse($servidor->respostas as $index => $resposta)
-                    <div class="border-b pb-4 last:border-0">
+                    <div class="border-b pb-6 last:border-0">
                         <p class="text-gray-800 font-medium mb-3">
                             <span class="text-blue-500 mr-2">{{ $index + 1 }}.</span>
                             {{ $resposta->pergunta->texto_pergunta ?? 'Pergunta não encontrada' }}
                         </p>
 
-                        <div class="flex items-start gap-4">
-                            @if(is_numeric($resposta->valor))
-                                <div class="flex gap-1">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold {{ $resposta->valor >= $i ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-400' }}">
-                                            {{ $i }}
-                                        </span>
-                                    @endfor
+                        <div class="flex flex-col gap-2">
+                            @if (is_numeric($resposta->valor))
+                                @php
+                                    $labels = [
+                                        1 => 'Insatisfeito',
+                                        2 => 'Pouco Satisfeito',
+                                        3 => 'Satisfeito',
+                                        4 => 'Muito Satisfeito'
+                                    ];
+                                @endphp
+                                <div class="flex items-center gap-4">
+                                    <div class="flex gap-1">
+                                        @for ($i = 1; $i <= 4; $i++)
+                                            <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold {{ $resposta->valor >= $i ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-400' }}">
+                                                {{ $i }}
+                                            </span>
+                                        @endfor
+                                    </div>
+                                    <span class="text-sm font-bold text-blue-700 bg-blue-50 px-3 py-1 rounded-md border border-blue-100">
+                                        {{ $labels[$resposta->valor] ?? 'N/A' }}
+                                    </span>
                                 </div>
-                                <span class="text-sm text-gray-500 self-center ml-2">Nota: {{ $resposta->valor }}/5</span>
                             @else
                                 <div class="bg-gray-50 p-4 rounded-lg w-full border-l-2 border-gray-300 italic text-gray-700">
                                     "{{ $resposta->valor }}"
@@ -82,19 +95,23 @@
                         <label class="block text-sm font-bold text-gray-700 mb-4 uppercase tracking-wider">
                             Validação do Auditor (Ajuste de Impacto):
                         </label>
-                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                            @foreach([
+                        <div class="grid grid-cols-3 md:grid-cols-9 gap-1.5">
+                            @foreach ([
+                                -20 => ['label' => '-20%', 'color' => 'peer-checked:bg-red-800', 'desc' => 'Gravíss.'],
+                                -15 => ['label' => '-15%', 'color' => 'peer-checked:bg-red-700', 'desc' => 'Grave'],
                                 -10 => ['label' => '-10%', 'color' => 'peer-checked:bg-red-600', 'desc' => 'Crítico'],
                                 -5  => ['label' => '-5%',  'color' => 'peer-checked:bg-orange-500', 'desc' => 'Atenção'],
                                 0   => ['label' => '0%',   'color' => 'peer-checked:bg-blue-600', 'desc' => 'Neutro'],
                                 5   => ['label' => '+5%',  'color' => 'peer-checked:bg-green-500', 'desc' => 'Bom'],
-                                10  => ['label' => '+10%', 'color' => 'peer-checked:bg-green-700', 'desc' => 'Excelente']
+                                10  => ['label' => '+10%', 'color' => 'peer-checked:bg-green-600', 'desc' => 'Ótimo'],
+                                15  => ['label' => '+15%', 'color' => 'peer-checked:bg-green-700', 'desc' => 'Superior'],
+                                20  => ['label' => '+20%', 'color' => 'peer-checked:bg-emerald-600', 'desc' => 'Excelência'],
                             ] as $valor => $info)
                                 <label class="cursor-pointer group">
                                     <input type="radio" name="ajuste_auditor" value="{{ $valor }}" class="hidden peer" {{ $valor == 0 ? 'checked' : '' }}>
-                                    <div class="flex flex-col items-center p-3 border-2 border-gray-100 rounded-xl bg-gray-50 transition-all hover:bg-gray-100 peer-checked:border-transparent {{ $info['color'] }} peer-checked:text-white shadow-sm">
-                                        <span class="text-lg font-bold">{{ $info['label'] }}</span>
-                                        <span class="text-[10px] uppercase font-bold opacity-80">{{ $info['desc'] }}</span>
+                                    <div class="flex flex-col items-center py-2 px-1 border border-gray-200 rounded-lg bg-gray-50 transition-all hover:bg-gray-100 peer-checked:border-transparent {{ $info['color'] }} peer-checked:text-white shadow-sm text-center">
+                                        <span class="text-xs md:text-sm font-black">{{ $info['label'] }}</span>
+                                        <span class="text-[7px] md:text-[8px] uppercase font-bold opacity-80 leading-none mt-1">{{ $info['desc'] }}</span>
                                     </div>
                                 </label>
                             @endforeach

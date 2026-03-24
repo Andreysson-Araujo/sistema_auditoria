@@ -40,6 +40,7 @@ Route::middleware(['auth'])->group(function () {
 
     // 3. Ver as respostas do servidor e concluir a auditoria
     // No seu web.php, mude de 'auditoria.show_pendente' para 'auditoria.show_respostas'
+    //
     Route::get('/auditoria/analisar/{id}', [FeedbackController::class, 'showPendente'])->name('auditoria.show_respostas');
     Route::post('/auditoria/finalizar/{servidor_id}', [FeedbackController::class, 'finalizarAuditoria'])->name('auditoria.finalizar');
 });

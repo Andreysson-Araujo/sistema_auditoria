@@ -8,8 +8,8 @@ services:
     networks:
       - digital_network
     volumes:
-      - avaliarh_storage:/var/www/html/storage
-      - avaliarh_cache:/var/www/html/bootstrap/cache
+      - storage:/var/www/html/storage
+      - cache:/var/www/html/bootstrap/cache
     environment:
       APP_NAME: avaliarh
       APP_ENV: production
@@ -34,8 +34,8 @@ services:
           - node.role == manager
 
 volumes:
-  avaliarh_storage:
-  avaliarh_cache:
+  storage:
+  cache:
 
 networks:
   digital_network:
